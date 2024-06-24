@@ -1,4 +1,5 @@
-<div class="flex flex-col justify-between h-screen w-screen p-8">
+<div class="relative flex flex-col justify-between h-screen w-screen p-8">
+  <div *ngIf="componentName=== 'chooseColor'" class="backdrop"></div>
   <div class="flex justify-center items-center">
     <ng-container *ngFor="let x of players.at(1)?.cards; let i = index">
       <img class="m-2 overflow-x-auto"
@@ -24,4 +25,12 @@
       >
     </ng-container>
   </div>
+  <ng-container *ngIf="componentName === 'chooseColor'">
+  <div class="chooseColorComponent bg-white flex flex-col">
+    <button type="button" class="btn btn-primary">Yellow</button>
+    <button>Blue</button>
+    <button>Green</button>
+  </div>
+  
+</ng-container>
 </div>

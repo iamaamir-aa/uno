@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { cardsPerPlayer, totalCards, totalPlayers } from './constants/constants';
+import { cardsPerPlayer, plusTwoIndex, reverseIndex, skipIndex, totalCards, totalPlayers } from './constants/constants';
 import { Player } from './model/player';
 
 @Component({
@@ -8,11 +8,13 @@ import { Player } from './model/player';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+  showBackdrop = true;
+  componentName = 'chooseColor';
   public drawCard() {
     if (this.allowedToDrawCard()) {
       let player = this.players[this.playerTurn];
       const card = this.popRandomCard();
-      if(this.isCardValid(card)){
+      if (this.isCardValid(card)) {
         alert('You have played a card');
         this.currentCard = card;
         this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
@@ -27,7 +29,7 @@ export class AppComponent {
   }
   private allowedToDrawCard() {
     let player = this.players[this.playerTurn];
-    if(this.doesHaveCompatibleCard(player)){
+    if (this.doesHaveCompatibleCard(player)) {
       return false;
     }
     return true;
@@ -43,16 +45,61 @@ export class AppComponent {
   public playCard(index: number) {
     let player = this.players[this.playerTurn];
     let card = player.getCard(index);
-    if (this.currentCard === undefined || this.isCardValid(card)) {
+    if (this.currentCard !== undefined || this.isCardValid(card)) {
       this.currentCard = card;
       player.playCard(card);
+      this.availableCards.push(card);
       if (player.getCardCount() === 0) {
         alert(`${player.name} wins!`);
         return;
       }
+      if (card === 52) {
+        this.nextPlayerPickFour();
+        return;
+      }
+      if (card === 53) {
+        this.nextPlayerChangeColor();
+        return;
+      }
+      if (card % 13 === plusTwoIndex) {
+        this.nextPlayerDrawTwo();
+        return;
+      }
+      if (card % 13 === skipIndex) {
+        this.nextPlayerSkip();
+        return;
+      }
+      if (card % 13 === reverseIndex) {
+        this.nextPlayerReverse();
+        return;
+      }
       this.playerTurn = (this.playerTurn + 1) % totalPlayers;
-      this.cards.push(card);
     }
+  }
+  nextPlayerReverse() {
+    this.direction = -this.direction;
+    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+  }
+  nextPlayerSkip() {
+    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+  }
+  nextPlayerDrawTwo() {
+    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+    this.players[this.playerTurn].drawCard(this.popRandomCard());
+    this.players[this.playerTurn].drawCard(this.popRandomCard());
+  }
+  nextPlayerChangeColor() {
+    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+    // show which card to put
+  }
+  private nextPlayerPickFour() {
+    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+    this.players[this.playerTurn].drawCard(this.popRandomCard());
+    this.players[this.playerTurn].drawCard(this.popRandomCard());
+    this.players[this.playerTurn].drawCard(this.popRandomCard());
+    this.players[this.playerTurn].drawCard(this.popRandomCard());
+    // show which card to put (color)
   }
   private isCardValid(card: number): boolean {
     if (card === 52 || card === 53) {
@@ -73,7 +120,7 @@ export class AppComponent {
   }
   title = 'uno';
   players: Player[] = [];
-  cards = Array.from({ length: totalCards }, (_, i) => i);
+  availableCards = Array.from({ length: totalCards }, (_, i) => i);
   currentCard: number | undefined = undefined;
   playerTurn = 0;
   direction = 1;
@@ -112,17 +159,17 @@ export class AppComponent {
   }
   private popRandomCard() {
     let x = getRandomInt(totalCards);
-    let index = this.cards.indexOf(x);
+    let index = this.availableCards.indexOf(x);
     while (index === -1) {
       x = getRandomInt(totalCards);
-      index = this.cards.indexOf(x);
+      index = this.availableCards.indexOf(x);
     }
-    this.cards.splice(index, 1);
+    this.availableCards.splice(index, 1);
     return x;
   }
   private getRandomCardNotPop() {
     let x = getRandomInt(totalCards);
-    while (this.cards.indexOf(x) === -1) {
+    while (this.availableCards.indexOf(x) === -1) {
       x = getRandomInt(totalCards);
     }
     return x;
