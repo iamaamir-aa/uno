@@ -8,7 +8,7 @@ import { Player } from './model/player';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  drawCard() {
+  public drawCard() {
     if (this.allowedToDrawCard()) {
       let player = this.players[this.playerTurn];
       const card = this.popRandomCard();
@@ -25,14 +25,14 @@ export class AppComponent {
     alert('You have a compatible card to play');
     return false;
   }
-  allowedToDrawCard() {
+  private allowedToDrawCard() {
     let player = this.players[this.playerTurn];
     if(this.doesHaveCompatibleCard(player)){
       return false;
     }
     return true;
   }
-  doesHaveCompatibleCard(player: Player) {
+  private doesHaveCompatibleCard(player: Player) {
     for (let i = 0; i < player.getCardCount(); i++) {
       if (this.isCardValid(player.getCard(i))) {
         return true;
@@ -54,7 +54,7 @@ export class AppComponent {
       this.cards.push(card);
     }
   }
-  isCardValid(card: number): boolean {
+  private isCardValid(card: number): boolean {
     if (card === 52 || card === 53) {
       return true;
     }
@@ -68,7 +68,7 @@ export class AppComponent {
     }
     return false;
   }
-  isMyTurn(n: number) {
+  public isMyTurn(n: number) {
     return this.playerTurn === n;
   }
   title = 'uno';
@@ -120,7 +120,7 @@ export class AppComponent {
     this.cards.splice(index, 1);
     return x;
   }
-  getRandomCardNotPop() {
+  private getRandomCardNotPop() {
     let x = getRandomInt(totalCards);
     while (this.cards.indexOf(x) === -1) {
       x = getRandomInt(totalCards);
@@ -130,16 +130,5 @@ export class AppComponent {
 }
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * Math.floor(max));
-}
-function getXUniqueRandomCards(x: number) {
-  let cards: number[] = [];
-  for (let i = 0; i < x; i++) {
-    let x = getRandomInt(totalCards);
-    while (cards.includes(x)) {
-      x = getRandomInt(totalCards);
-    }
-    cards.push(x);
-  }
-  return cards;
 }
 
