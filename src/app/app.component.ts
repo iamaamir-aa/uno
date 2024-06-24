@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { totalCards } from './constants/constants';
+import { cardsPerPlayer, totalCards } from './constants/constants';
 
 @Component({
   selector: 'app-root',
@@ -8,20 +8,45 @@ import { totalCards } from './constants/constants';
 })
 export class AppComponent {
   title = 'uno';
-  items = ['1', '2', '3', '4', '5'];
+  items: string[] = [];
   totalCards = totalCards;
-  cardsPerPlayer = 7;
-  getXRandomCards() {
-
+  cardsPerPlayer = cardsPerPlayer;
+  constructor() {
+    this.items = getXUniqueRandomCards(this.cardsPerPlayer).map(x => getFileName(x));;
   }
+
 }
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * Math.floor(max));
 }
-function getXRandomCards(x: number) {
-  let cards = [];
+function getXUniqueRandomCards(x: number) {
+  let cards: number[] = [];
   for (let i = 0; i < x; i++) {
-    cards.push(getRandomInt(totalCards));
+    let x = getRandomInt(totalCards);
+    while (cards.includes(x)) {
+      x = getRandomInt(totalCards);
+    }
+    cards.push(x);
   }
   return cards;
+}
+function getFileName(x: number) {
+  const base = '../assets';
+  if (x === 53) {
+    return `${base}/wildcard/colorchange.png`;
+  }
+  if (x === 52) {
+    return `${base}/wildcard/pickfour.png`
+  }
+  const index = x % 13;
+  if (x > 38) {
+    return `${base}/blue/blue_${index}.png`
+  }
+  if (x > 25) {
+    return `${base}/green/green_${index}.png`
+  }
+  if (x > 12) {
+    return `${base}/red/red_${index}.png`;
+  }
+  return `${base}/yellow/yellow_${index}.png`
 }

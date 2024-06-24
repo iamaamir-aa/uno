@@ -5,11 +5,10 @@
     </ng-container>
   </div>
   <div class="">
-    hi
   </div>
   <div class="flex justify-center items-center">
     <ng-container *ngFor="let x of items">
-      <img class="m-2" src="../assets/blue/blue_0.png" alt="">
+      <img class="m-2 overflow-x-auto" [src]="x" alt="">
     </ng-container>
   </div>
 </div>
