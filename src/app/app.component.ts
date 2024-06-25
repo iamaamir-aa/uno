@@ -21,6 +21,7 @@ export class AppComponent {
   showBackdrop: boolean = true;
   componentName: string | undefined = undefined ;
   currentPlayerName: string = 'Player 1';
+  colors: color[] = ['red', 'green', 'blue', 'yellow'];
   constructor() {
     this.initiate();
   }

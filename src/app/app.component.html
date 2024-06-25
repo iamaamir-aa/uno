@@ -1,4 +1,4 @@
-<div class="relative flex flex-col justify-between h-screen w-screen p-8 bg-slate-500">
+<div class="relative flex flex-col justify-between h-screen w-screen p-8">
   <div *ngIf="componentName=== 'chooseColor'" class="backdrop"></div>
   <div class="flex justify-center w-full bg-orange-300 text-white py-2 rounded" *ngIf="currentColour">Please put {{currentColour}} color</div>
   <div class="flex justify-center items-center">
@@ -19,7 +19,7 @@
   </div>
   <div class="flex justify-center items-center">
     <ng-container *ngFor="let x of players.at(0)?.cards; let i = index">
-        <img class="m-2 overflow-x-auto"
+        <img class="img-card"
          [ngClass]="{'opacity-50 cursor-not-allowed': !isMyTurn(0)}" 
         [src]="getFileName(x)" alt="" 
         (click)="isMyTurn(0) && playCard(i)"
@@ -27,20 +27,16 @@
     </ng-container>
   </div>
   <ng-container *ngIf="componentName === 'chooseColor'">
-  <div class="overlayComponent bg-white flex">
-    <button type="button" class="bg-yellow-500 hover:bg-yellow-300 px-2 py-1 border rounded m-4 w-32"
-    (click)="chooseColor('yellow')"
-    >Yellow</button>
-    <button type="button"
-    class="bg-blue-500 hover:bg-blue-300 px-2 py-1 border rounded m-4 w-32"
-    (click)="chooseColor('blue')"
-    >Blue</button>
-    <button type="button" class="bg-green-500 hover:bg-green-300 px-2 py-1 border rounded m-4 w-32"
-    (click)="chooseColor('green')"
-    >Green</button>
-    <button type="button" class="bg-red-500 hover:bg-red-300 px-2 py-1 border rounded m-4 w-32"
-    (click)="chooseColor('red')"
-    >Red</button>
+  <div class="overlayComponent bg-white flex flex-col">
+    <div class="font-semibold text-lg justify-center items-center flex mt-4">{{'Choose a color' | uppercase}}</div>
+    <div class="flex">
+      <ng-container *ngFor="let x of colors">
+      <button type="button" class="m-4 w-32 h-32 rounded border cursor-pointer"
+      [ngClass]="'bg-' + x + '-500 hover:bg-' + x + '-300'"
+      (click)="chooseColor(x)">{{ x | uppercase}}</button>
+    </ng-container>
+    </div>
+    
   </div>
   
 </ng-container>
