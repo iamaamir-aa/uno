@@ -58,7 +58,7 @@ export class AppComponent {
   public playCard(index: number): void {
     let player = this.getCurrentPlayer();
     let card = player.getCard(index);
-    if (this.currentCard !== undefined && this.isCardPlayable(card)) {
+    if (!!this.currentCard && !!card && this.isCardPlayable(card)) {
       this.currentCard = card;
       player.playCard(card);
       this.availableCards.push(card);
