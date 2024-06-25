@@ -14,6 +14,9 @@ export class Player {
     drawCard(card: number) {
         this.cards.push(card);
     }
+    drawNCards(cards: number[]) {
+        this.cards.push(...cards);
+    }
     getCardCount() {
         return this.cards.length;
     }

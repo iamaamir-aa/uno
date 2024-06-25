@@ -1,0 +1,32 @@
+.relative {
+    position: relative;
+  }
+  
+  .backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 20; 
+  }
+  
+  .overlayComponent {
+    position: absolute;
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    z-index: 30; 
+    }
+.img-card {
+  margin: 0.5rem;
+  overflow-x: auto; 
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); 
+  transition: transform 0.5s ease-in-out, box-shadow 0.5s ease-in-out; 
+}
+
+.img-card:hover {
+  transform: scale(1.1); 
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+}
