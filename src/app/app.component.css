@@ -12,7 +12,7 @@
     z-index: 20; /* Ensure it covers other content */
   }
   
-  .chooseColorComponent {
+  .overlayComponent {
     position: absolute;
     top: 50%; /* Center vertically */
     left: 50%; /* Center horizontally */

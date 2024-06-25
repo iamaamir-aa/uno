@@ -27,7 +27,7 @@
     </ng-container>
   </div>
   <ng-container *ngIf="componentName === 'chooseColor'">
-  <div class="chooseColorComponent bg-white flex">
+  <div class="overlayComponent bg-white flex">
     <button type="button" class="bg-yellow-500 hover:bg-yellow-300 px-2 py-1 border rounded m-4 w-32"
     (click)="chooseColor('yellow')"
     >Yellow</button>
@@ -44,4 +44,12 @@
   </div>
   
 </ng-container>
+  <ng-container *ngIf="componentName === 'typeName'">
+    <div class="overlayComponent flex-col bg-white flex">
+  
+      <input type="text" [(ngModel)]="currentPlayerName">
+      <button type="button" class="bg-blue-500 hover:bg-blue-300 px-2 py-1 border rounded m-4 w-32"
+        (click)="close()">Enter</button>
+    </div>
+  </ng-container>
 </div>

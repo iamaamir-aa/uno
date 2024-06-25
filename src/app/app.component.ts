@@ -15,12 +15,12 @@ export class AppComponent {
   availableCards: number[] = Array.from({ length: totalCards }, (_, i) => i);
   currentCard: number | undefined = undefined;
   currentColour: color | undefined = undefined;
-  playerTurn: number = 0;
+  currentPlayer: number = 0;
   direction: number = 1;
   wildCardAtPlay: boolean = true;
   showBackdrop: boolean = true;
-  componentName: string = 'chooseColor';
-
+  componentName: string | undefined = undefined ;
+  currentPlayerName: string = 'Player 1';
   constructor() {
     this.initiate();
   }
@@ -29,25 +29,26 @@ export class AppComponent {
     for (let i = 0; i < totalPlayers; i++) {
       let player = new Player(`Player ${i + 1}`, []);
       for (let j = 0; j < cardsPerPlayer; j++) {
-        player.drawCard(this.popRandomCard());
+        player.drawNCards(this.getNPoppedRandomCard(1));
       }
       this.players.push(player);
     }
     this.currentCard = this.getRandomCardNotPop();
   }
-
+  private getCurrentPlayer(): Player {
+    return this.players[this.currentPlayer];
+  }
   public drawCard(): boolean {
     if (this.allowedToDrawCard()) {
-      let player = this.players[this.playerTurn];
+      let player = this.getCurrentPlayer();
       const card = this.popRandomCard();
-      if (this.isCardValid(card)) {
+      player.drawCard(card);
+      if (this.isCardPlayable(card)) {
         alert('You have played a card');
-        this.currentCard = card;
-        this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+        this.playCard(player.getCardIndex(card));
         return true;
       }
-      player.drawCard(card);
-      this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+      this.jumpToNextPlayer();
       return true;
     }
     alert('You have a compatible card to play');
@@ -55,9 +56,9 @@ export class AppComponent {
   }
 
   public playCard(index: number): void {
-    let player = this.players[this.playerTurn];
+    let player = this.getCurrentPlayer();
     let card = player.getCard(index);
-    if (this.currentCard !== undefined || this.isCardValid(card)) {
+    if (this.currentCard !== undefined && this.isCardPlayable(card)) {
       this.currentCard = card;
       player.playCard(card);
       this.availableCards.push(card);
@@ -71,30 +72,37 @@ export class AppComponent {
 
   public chooseColor(color: color): void {
     this.showBackdrop = false;
-    this.componentName = 'game';
+    this.componentName = undefined;
     this.currentColour = color;
   }
-
+  public close(): void{
+    this.showBackdrop = false;
+    this.componentName = undefined;
+  }
   public isMyTurn(n: number): boolean {
-    return this.playerTurn === n;
+    return this.currentPlayer === n;
   }
 
   private allowedToDrawCard(): boolean {
-    let player = this.players[this.playerTurn];
+    let player = this.getCurrentPlayer();
     return !this.doesHaveCompatibleCard(player);
   }
 
   private doesHaveCompatibleCard(player: Player): boolean {
     for (let i = 0; i < player.getCardCount(); i++) {
-      if (this.isCardValid(player.getCard(i))) {
+      if (this.isCardPlayable(player.getCard(i))) {
         return true;
       }
     }
     return false;
   }
 
-  private isCardValid(card: number): boolean {
+  private isCardPlayable(card: number): boolean {
     if (card === 52 || card === 53) {
+      return true;
+    }
+    if (this.currentCard && this.currentColour !== undefined && (Math.floor(card / 13) === this.getColorIndex(this.currentColour))) {
+      this.currentColour = undefined;
       return true;
     }
     if (this.currentCard && (card % 13 === this.currentCard % 13)) {
@@ -116,7 +124,13 @@ export class AppComponent {
     this.availableCards.splice(index, 1);
     return x;
   }
-
+  private getNPoppedRandomCard(x: number): number[] {
+    let cards: number[] = [];
+    for (let i = 0; i < x; i++) {
+      cards.push(this.popRandomCard());
+    }
+    return cards;
+  }
   private getRandomCardNotPop(): number {
     let x = getRandomInt(totalCards);
     while (this.availableCards.indexOf(x) === -1) {
@@ -127,33 +141,38 @@ export class AppComponent {
 
   private nextPlayerReverse(): void {
     this.direction = -this.direction;
-    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+    this.jumpToNextPlayer();
   }
 
   private nextPlayerSkip(): void {
-    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
-    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+    this.jumpToNextPlayer();
+    this.jumpToNextPlayer();
   }
 
   private nextPlayerDrawTwo(): void {
-    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
-    this.players[this.playerTurn].drawCard(this.popRandomCard());
-    this.players[this.playerTurn].drawCard(this.popRandomCard());
+    this.jumpToNextPlayer();
+    this.getCurrentPlayer().drawNCards(this.getNPoppedRandomCard(2));
+    this.jumpToNextPlayer();
   }
 
   private nextPlayerChangeColor(): void {
-    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
+    this.jumpToNextPlayer();
+    this.showBackdropAndChooseColor();
   }
 
   private nextPlayerPickFour(): void {
-    this.playerTurn = (this.playerTurn + this.direction + totalPlayers) % totalPlayers;
-    this.players[this.playerTurn].drawCard(this.popRandomCard());
-    this.players[this.playerTurn].drawCard(this.popRandomCard());
-    this.players[this.playerTurn].drawCard(this.popRandomCard());
-    this.players[this.playerTurn].drawCard(this.popRandomCard());
+    this.jumpToNextPlayer();
+    this.getCurrentPlayer().drawNCards(this.getNPoppedRandomCard(4));
+    this.jumpToNextPlayer();
+    this.showBackdropAndChooseColor();
+  }
+  jumpToNextPlayer(): void {
+    this.currentPlayer = (this.currentPlayer + this.direction + totalPlayers) % totalPlayers;
+  }
+  showBackdropAndChooseColor(): void {
+    this.showBackdrop = true;
     this.componentName = 'chooseColor';
   }
-
   private handleSpecialCards(card: number): void {
     if (card === 52) {
       this.nextPlayerPickFour();
@@ -175,7 +194,7 @@ export class AppComponent {
       this.nextPlayerReverse();
       return;
     }
-    this.playerTurn = (this.playerTurn + 1) % totalPlayers;
+    this.jumpToNextPlayer();
   }
 
   public getFileName(x: number): string {
@@ -197,6 +216,21 @@ export class AppComponent {
       return `${base}/red/red_${index}.png`;
     }
     return `${base}/yellow/yellow_${index}.png`;
+  }
+  public getColorIndex(color: color){
+    if (color === 'blue'){
+      return 3;
+    }
+    if (color === 'green'){
+      return 2;
+    }
+    if (color === 'red'){
+      return 1;
+    }
+    if (color === 'yellow'){
+      return 0;
+    }
+    return -1;
   }
 }
 
