@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { cardsPerPlayer, plusTwoIndex, reverseIndex, skipIndex, totalCards, totalPlayers } from './constants/constants';
 import { Player } from './model/player';
+import { BehaviorSubject, delayWhen, map, timer } from 'rxjs';
 
 type color = 'red' | 'green' | 'blue' | 'yellow';
 
@@ -15,29 +16,45 @@ export class AppComponent {
   availableCards: number[] = Array.from({ length: totalCards }, (_, i) => i);
   currentCard: number | undefined = undefined;
   currentColour: color | undefined = undefined;
-  currentPlayer: number = 0;
   direction: number = 1;
   wildCardAtPlay: boolean = true;
   showBackdrop: boolean = true;
   componentName: string | undefined = undefined ;
   currentPlayerName: string = 'Player 1';
   colors: color[] = ['red', 'green', 'blue', 'yellow'];
+  currentPlayer$ = new BehaviorSubject<number>(1);
+  currentPlayerUpdate$ = this.currentPlayer$.asObservable().pipe(
+    delayWhen(val=> this.isAIPlayer(val) ? timer(2000) : timer(0)),
+    map((value) => {
+      if(this.isAIPlayer(value)){
+        this.AIPlayer();
+      }
+    })
+  ); 
   constructor() {
+    this.currentPlayerUpdate$.subscribe();
     this.initiate();
   }
 
   public initiate(): void {
     for (let i = 0; i < totalPlayers; i++) {
-      let player = new Player(`Player ${i + 1}`, []);
-      for (let j = 0; j < cardsPerPlayer; j++) {
-        player.drawNCards(this.getNPoppedRandomCard(1));
+      if(this.isAIPlayer(i)){
+        let player = new Player(`AI`, []);
+        player.drawNCards(this.getNPoppedRandomCard(cardsPerPlayer));
+        this.players.push(player);
+        continue;
       }
+      let player = new Player(`Player ${i + 1}`, []);
+      player.drawNCards(this.getNPoppedRandomCard(cardsPerPlayer));
       this.players.push(player);
     }
     this.currentCard = this.getRandomCardNotPop();
   }
+  private isAIPlayer(n: number): boolean {
+    return n === 0;
+  }
   private getCurrentPlayer(): Player {
-    return this.players[this.currentPlayer];
+    return this.players[this.currentPlayer$.value];
   }
   public drawCard(): boolean {
     if (this.allowedToDrawCard()) {
@@ -81,7 +98,7 @@ export class AppComponent {
     this.componentName = undefined;
   }
   public isMyTurn(n: number): boolean {
-    return this.currentPlayer === n;
+    return this.currentPlayer$.value === n;
   }
 
   private allowedToDrawCard(): boolean {
@@ -157,8 +174,8 @@ export class AppComponent {
   }
 
   private nextPlayerChangeColor(): void {
-    this.jumpToNextPlayer();
     this.showBackdropAndChooseColor();
+    this.jumpToNextPlayer();
   }
 
   private nextPlayerPickFour(): void {
@@ -168,7 +185,7 @@ export class AppComponent {
     this.showBackdropAndChooseColor();
   }
   jumpToNextPlayer(): void {
-    this.currentPlayer = (this.currentPlayer + this.direction + totalPlayers) % totalPlayers;
+    this.currentPlayer$.next((this.currentPlayer$.value + this.direction + totalPlayers) % totalPlayers);
   }
   showBackdropAndChooseColor(): void {
     this.showBackdrop = true;
@@ -233,6 +250,79 @@ export class AppComponent {
     }
     return -1;
   }
+
+  public AIPlayer(): void {
+    let player = this.getCurrentPlayer();
+    let card = this.getAIPlayableCard(player);
+    if (card === -1) {
+      this.drawCard();
+      return;
+    }
+    this.playCard(player.getCardIndex(card));
+  }
+  private getAIPlayableCard(player: Player) {
+    if (this.preferToDrawCardsToNextPlayer()) {
+        if(this.doesHavePlusFourCard(player)){
+          return 52;
+        }
+        const plusTwo = this.getValidColourPlusTwoCard(player);
+        if(plusTwo !== -1){
+          return plusTwo;
+        }
+        const skipCard = this.getValidColourSkipCard(player);
+        if(skipCard !== -1){
+          return skipCard;
+        }
+        const reverseCard = this.getValidColourReverseCard(player);
+        if(reverseCard !== -1){
+          return reverseCard;
+        }
+    }
+    for (let i = 0; i < player.getCardCount(); i++) {
+      if (this.isCardPlayable(player.getCard(i))) {
+        return player.getCard(i);
+      }
+    }
+    return -1;
+  }
+  getValidColourReverseCard(player: Player) {
+    for (let i = 0; i < player.getCardCount(); i++) {
+      if (player.getCard(i) % 13 === reverseIndex && this.isCardPlayable(player.getCard(i))) {
+        return player.getCard(i);
+      }
+    }
+    return -1;
+  }
+  getValidColourSkipCard(player: Player) {
+    for (let i = 0; i < player.getCardCount(); i++) {
+      if (player.getCard(i) % 13 === skipIndex && this.isCardPlayable(player.getCard(i))) {
+        return player.getCard(i);
+      }
+    }
+    return -1;
+  }
+  getValidColourPlusTwoCard(player: Player) {
+    for (let i = 0; i < player.getCardCount(); i++) {
+      if (player.getCard(i) % 13 === plusTwoIndex && this.isCardPlayable(player.getCard(i)))  {
+        return player.getCard(i);
+      }
+    }
+    return -1;
+  }
+  
+  private preferToDrawCardsToNextPlayer(): boolean {
+    let nextPlayer = this.players[(this.currentPlayer$.value + this.direction + totalPlayers) % totalPlayers];
+    return nextPlayer.getCardCount() < 3;
+  }
+  doesHavePlusFourCard(player: Player): boolean {
+    for (let i = 0; i < player.getCardCount(); i++) {
+      if (player.getCard(i) === 52) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }
 
 function getRandomInt(max: number): number {
